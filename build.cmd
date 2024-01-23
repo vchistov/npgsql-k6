@@ -1,0 +1,1 @@
+docker build -f ./src/WebApi/Dockerfile -t npgsql-k6/web-api:latest ./src

@@ -1,0 +1,39 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:13.13
+    environment:
+      POSTGRES_DB: "testdb"
+      POSTGRES_USER: "testuser"
+      POSTGRES_PASSWORD: "pgpwd4test"
+    ports:
+      - "5454:5432"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+    networks:
+      - testnet
+
+  webapp:
+    image: npgsql-k6/web-api:latest
+    build:
+      context: ./src
+      dockerfile: WebApi/Dockerfile
+    environment:
+      - 'ConnectionStrings__PgSql=Host=postgres;Port=5432;Database=testdb;Username=testuser;Password=pgpwd4test;Pooling=false;Timeout=5;'
+    ports:
+      - '5005:8080'
+    networks:
+      - testnet
+
+  k6:
+    image: grafana/k6
+    environment:
+      - 'TARGET_HOST=webapp:8080'
+    volumes:
+      - ./load:/scripts
+    networks:
+      - testnet
+
+networks:
+  testnet:
+    driver: bridge
